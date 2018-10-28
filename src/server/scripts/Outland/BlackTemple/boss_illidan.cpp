@@ -1634,7 +1634,7 @@ struct boss_maievAI : public ScriptedAI
     }
 };
 
-bool GossipSelect_npc_akama_at_illidan(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
+bool OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
 {
     if (uiAction == GOSSIP_ACTION_INFO_DEF) // Time to begin the Event
     {
@@ -1644,7 +1644,7 @@ bool GossipSelect_npc_akama_at_illidan(Player* pPlayer, Creature* pCreature, uin
     return true;
 }
 
-bool GossipHello_npc_akama_at_illidan(Player* pPlayer, Creature* pCreature)
+bool OnGossipHello(Player* pPlayer, Creature* pCreature)
 {
     pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
     pPlayer->SEND_GOSSIP_MENU(10465, pCreature->GetGUID());
@@ -2248,8 +2248,8 @@ void AddSC_boss_illidan()
     newscript = new Script;
     newscript->Name = "npc_akama_illidan";
     newscript->GetAI = &GetAI_npc_akama_at_illidan;
-    newscript->pGossipHello = &GossipHello_npc_akama_at_illidan;
-    newscript->pGossipSelect = &GossipSelect_npc_akama_at_illidan;
+    newscript->pGossipHello = &OnGossipHello;
+    newscript->pGossipSelect = &OnGossipSelect;
     newscript->RegisterSelf();
 
     newscript = new Script;
