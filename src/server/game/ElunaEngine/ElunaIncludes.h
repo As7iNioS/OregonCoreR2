@@ -40,7 +40,7 @@
 #include "ScriptedCreature.h"
 #include "Battleground.h"
 #include "Configuration/Config.h"
-#include "BattleGroundMgr.h"
+#include "BattlegroundMgr.h"
 #include "revision.h"
 
 #include "ArenaTeam.h"
