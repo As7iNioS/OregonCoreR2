@@ -528,7 +528,7 @@ void WorldSession::HandleRaidConvertOpcode(WorldPacket& /*recv_data*/)
         return;
 
     /** error handling **/
-    if (!group->IsLeader(GetPlayer()->GetGUID()) || group->GetMembersCount() < 2)
+    if (!group->IsLeader(GetPlayer()->GetGUID()) || group->GetMembersCount() < group->GetMembersMinCount())
         return;
     /********************/
 
