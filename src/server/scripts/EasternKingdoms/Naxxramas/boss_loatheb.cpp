@@ -82,7 +82,7 @@ struct boss_loathebAI : public ScriptedAI
         InevitableDoom_Timer = 120000;
         InevitableDoom5mins_Timer = 300000;
         RemoveCurse_Timer = 30000;
-        Summon_Timer = 8000;
+        Summon_Timer = 12000;
     }
 
     void EnterCombat(Unit* /*who*/)
@@ -202,7 +202,7 @@ struct boss_loathebAI : public ScriptedAI
                     SummonedSpores->AddThreat(pTarget, 1.0f);
             }
 
-            Summon_Timer = 28000;
+            Summon_Timer = 12000;
         }
         else Summon_Timer -= diff;
 

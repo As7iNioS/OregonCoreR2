@@ -81,10 +81,10 @@ struct boss_gluthAI : public ScriptedAI
     void Reset()
     {
         MortalWound_Timer = 8000;
-        Decimate_Timer = 100000;
+        Decimate_Timer = 110000;
         TerrifyingRoar_Timer = 21000;
         Frenzy_Timer = 15000;
-        Enrage_Timer = 304000;
+        Enrage_Timer = 10000;
         Summon_Timer = 10000;
     }
 
@@ -109,7 +109,7 @@ struct boss_gluthAI : public ScriptedAI
         if (Decimate_Timer <= diff)
         {
             DoCastVictim(SPELL_DECIMATE);
-            Decimate_Timer = 100000;
+            Decimate_Timer = urand(100000,110000);
         }
         else Decimate_Timer -= diff;
 
@@ -133,7 +133,7 @@ struct boss_gluthAI : public ScriptedAI
         if (Enrage_Timer <= diff)
         {
             DoCast(me, SPELL_ENRAGE);
-            Enrage_Timer = 61000;
+            Enrage_Timer = urand(10000, 12000);
         }
         else Enrage_Timer -= diff;
 
