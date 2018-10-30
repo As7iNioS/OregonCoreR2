@@ -1069,6 +1069,9 @@ void World::LoadConfigSettings(bool reload)
     m_configs[CONFIG_BOOL_ELUNA_ENABLED] = sConfig.GetBoolDefault("Eluna.Enabled", true);
     if (reload)
         sEluna->OnConfigLoad(reload);
+
+    m_configs[CONFIG_GROUP_OFFLINE_LEADER_DELAY] = sConfig.GetIntDefault("Group.OfflineLeaderDelay", 300);
+
 }
 
 void World::LoadSQLUpdates()
@@ -1948,6 +1951,17 @@ void World::Update(uint32 diff)
 
     sOutdoorPvPMgr.Update(diff);
     RecordTimeDiff("UpdateOutdoorPvPMgr");
+
+    ///- Update groups with offline leaders
+    if (m_timers[WUPDATE_GROUPS].Passed())
+    {
+        m_timers[WUPDATE_GROUPS].Reset();
+        if (const uint32 delay = getConfig(CONFIG_GROUP_OFFLINE_LEADER_DELAY))
+        {
+            for (ObjectMgr::GroupSet::const_iterator i = sObjectMgr.GetGroupSetBegin(); i != sObjectMgr.GetGroupSetEnd(); ++i)
+                (*i)->UpdateOfflineLeader(m_gameTime, delay);
+        }
+    }
 
     ///- used by eluna
     sEluna->OnWorldUpdate(diff);

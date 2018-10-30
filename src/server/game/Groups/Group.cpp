@@ -44,6 +44,7 @@ Group::Group()
     m_masterLooterGuid  = 0;
     m_lootThreshold     = ITEM_QUALITY_UNCOMMON;
     m_subGroupsCounts   = NULL;
+    m_leaderLastOnline  = 0;
     m_difficulty        = DIFFICULTY_NORMAL;
 
     for (uint8 i = 0; i < TARGETICONCOUNT; ++i)
@@ -84,6 +85,7 @@ bool Group::Create(const uint64& guid, const char* name)
 {
     m_leaderGuid = guid;
     m_leaderName = name;
+    m_leaderLastOnline = time(nullptr);
 
     m_groupType  = isBGGroup() ? GROUPTYPE_RAID : GROUPTYPE_NORMAL;
 
@@ -123,6 +125,8 @@ bool Group::Create(const uint64& guid, const char* name)
 
     if (!isBGGroup()) CharacterDatabase.CommitTransaction();
 
+    _updateLeaderFlag();
+
     sScriptMgr.OnGroupCreated(leader->GetGroup(), leader);
    
     // used by eluna
@@ -149,6 +153,8 @@ bool Group::LoadGroupFromDB(const uint64& leaderGuid, QueryResult_AutoPtr result
     // group leader not exist
     if (!sObjectMgr.GetPlayerNameByGUID(m_leaderGuid, m_leaderName))
         return false;
+
+    m_leaderLastOnline = time(nullptr);
 
     m_groupType  = (*result)[13].GetBool() ? GROUPTYPE_RAID : GROUPTYPE_NORMAL;
 
@@ -1042,6 +1048,47 @@ void Group::UpdatePlayerOutOfRange(Player* player)
     }
 }
 
+void Group::UpdatePlayerOnlineStatus(Player* player, bool online /*= true*/)
+{
+    if (!player)
+        return;
+    const ObjectGuid guid = player->GetObjectGUID();
+    if (!IsMember(guid))
+        return;
+
+    SendUpdate();
+    if (online)
+    {
+        player->SetGroupUpdateFlag(GROUP_UPDATE_FULL);
+        UpdatePlayerOutOfRange(player);
+    }
+    else if (IsLeader(guid))
+        m_leaderLastOnline = time(nullptr);
+}
+
+void Group::UpdateOfflineLeader(time_t time, uint32 delay)
+{
+    // Do not update BG groups, BGs take care of offliners
+    if (isBGGroup())
+        return;
+
+    // Check leader presence
+    if (const Player* leader = sObjectMgr.GetPlayer(m_leaderGuid))
+    {
+        // Consider loading a new map as being online as well until session finally times out
+        if (leader->IsInWorld() || (leader->GetSession() && leader->IsBeingTeleportedFar()))
+        {
+            m_leaderLastOnline = time;
+            return;
+        }
+    }
+
+    // Check for delay
+    if ((time - m_leaderLastOnline) < delay)
+        return;
+
+    _chooseLeader(true);
+}
 void Group::BroadcastPacket(WorldPacket* packet, bool ignorePlayersInBGRaid, int group, uint64 ignore)
 {
     for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
@@ -1202,7 +1249,7 @@ bool Group::_removeMember(const uint64& guid)
     return false;
 }
 
-void Group::_chooseLeader()
+void Group::_chooseLeader(bool offline /*= false*/)
 {
     if (GetMembersCount() < GetMembersMinCount())
         return;
@@ -1235,7 +1282,16 @@ void Group::_chooseLeader()
     if (chosen.IsEmpty())
         chosen = first;
 
-    _setLeader(!chosen.IsEmpty() ? chosen : m_memberSlots.front().guid);
+    // If we are choosing a new leader due to inactivity, check if everyone is offline first
+    if (offline && chosen.IsEmpty())
+        return;
+
+    // Still nobody online...
+    if (chosen.IsEmpty())
+        chosen = m_memberSlots.front().guid;
+
+    // Do announce if we are choosing a new leader due to old one being offline
+    return (offline ? ChangeLeader(chosen) : _setLeader(chosen));
 }
 
 void Group::_setLeader(const uint64& guid)
@@ -1291,9 +1347,17 @@ void Group::_setLeader(const uint64& guid)
         CharacterDatabase.PExecute("UPDATE group_member SET leaderGuid='%u' WHERE leaderGuid='%u'", GUID_LOPART(slot->guid), GUID_LOPART(m_leaderGuid));
         CharacterDatabase.CommitTransaction();
     }
-
+    _updateLeaderFlag(true);
     m_leaderGuid = slot->guid;
     m_leaderName = slot->name;
+    m_leaderLastOnline = time(nullptr);
+    _updateLeaderFlag();
+}
+
+void Group::_updateLeaderFlag(bool remove /*= false*/) const
+{
+    if (Player* player = sObjectMgr.GetPlayer(m_leaderGuid))
+        player->UpdateGroupLeaderFlag(remove);
 }
 
 void Group::_removeRolls(const uint64& guid)
