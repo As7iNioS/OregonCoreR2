@@ -22,7 +22,6 @@ file(GLOB_RECURSE sources_Combat Combat/*.cpp Combat/*.h)
 file(GLOB_RECURSE sources_Conditions Conditions/*.cpp Conditions/*.h)
 file(GLOB_RECURSE sources_DataStores DataStores/*.cpp DataStores/*.h)
 file(GLOB_RECURSE sources_DungeonFinding DungeonFinding/*.cpp DungeonFinding/*.h)
-file(GLOB_RECURSE sources_ElunaEngine ElunaEngine/*.cpp ElunaEngine/*.h)
 file(GLOB_RECURSE sources_Entities Entities/*.cpp Entities/*.h)
 file(GLOB_RECURSE sources_Events Events/*.cpp Events/*.h)
 file(GLOB_RECURSE sources_Globals Globals/*.cpp Globals/*.h)
@@ -72,7 +71,6 @@ set(game_STAT_SRCS
   ${sources_Conditions}
   ${sources_DataStores}
   ${sources_DungeonFinding}
-  ${sources_ElunaEngine}
   ${sources_Entities}
   ${sources_Events}
   ${sources_Globals}
@@ -109,7 +107,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/dep/g3dlite/include
   ${CMAKE_SOURCE_DIR}/dep/SFMT
   ${CMAKE_SOURCE_DIR}/dep/zlib
-  ${CMAKE_SOURCE_DIR}/dep/lualib
   ${CMAKE_SOURCE_DIR}/src/server/collision
   ${CMAKE_SOURCE_DIR}/src/server/collision/Management
   ${CMAKE_SOURCE_DIR}/src/server/collision/Models
@@ -147,7 +144,6 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/Conditions
   ${CMAKE_CURRENT_SOURCE_DIR}/DataStores
   ${CMAKE_CURRENT_SOURCE_DIR}/DungeonFinding
-  ${CMAKE_CURRENT_SOURCE_DIR}/ElunaEngine
   ${CMAKE_CURRENT_SOURCE_DIR}/Entities
   ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Creature
   ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Corpse
@@ -203,17 +199,9 @@ include_directories(
   ${OPENSSL_INCLUDE_DIR}
 )
 
-add_library(game STATIC
-    ${game_STAT_SRCS}
-    ${lua_STAT_SRCS}
-)
+add_library(game STATIC ${game_STAT_SRCS})
 
 add_dependencies(game revision.h)
-add_dependencies(game lualib)
-
-target_link_libraries(game
- lualib
-)
 
 # Generate precompiled header
 if (USE_COREPCH)
@@ -225,25 +213,3 @@ if (USE_COREPCH)
     add_native_precompiled_header(game ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeaders/gamePCH)
   endif()
 endif()
-
-  if( WIN32 )
-    if ( MSVC )
-      add_custom_command(TARGET game
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin/$(ConfigurationName)/lua_scripts/extensions/
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ElunaEngine/extensions ${CMAKE_BINARY_DIR}/bin/$(ConfigurationName)/lua_scripts/extensions/
-      )
-    elseif ( MINGW )
-      add_custom_command(TARGET game
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin/lua_scripts/extensions/
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ElunaEngine/extensions ${CMAKE_BINARY_DIR}/bin/lua_scripts/extensions/
-      )
-    endif()
-  endif()
-
-  if( UNIX )
-    install(DIRECTORY ElunaEngine/extensions DESTINATION bin/lua_scripts/)
-  elseif( WIN32 )
-    install(DIRECTORY ElunaEngine/extensions DESTINATION "${CMAKE_BINARY_DIR}/bin/$(ConfigurationName)/lua_scripts/")
-  endif()
