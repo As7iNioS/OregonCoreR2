@@ -376,6 +376,9 @@ class Group
         void SendTargetIconList(WorldSession* session);
         void SendUpdate();
         void UpdatePlayerOutOfRange(Player* pPlayer);
+        void UpdatePlayerOnlineStatus(Player* player, bool online = true);
+        void UpdateOfflineLeader(time_t time, uint32 delay);
+
         // ignore: GUID of player that will be ignored
 
         template<class Worker>
@@ -442,8 +445,9 @@ class Group
         bool _addMember(const uint64& guid, const char* name, bool isAssistant = false);
         bool _addMember(const uint64& guid, const char* name, bool isAssistant, uint8 group);
         bool _removeMember(const uint64& guid);             // returns true if leader has changed
-        void _chooseLeader();
+        void _chooseLeader(bool offline = false);
         void _setLeader(const uint64& guid);
+        void _updateLeaderFlag(bool remove = false) const;
 
         void _removeRolls(const uint64& guid);
 
@@ -514,6 +518,7 @@ class Group
         InvitesList         m_invitees;
         uint64              m_leaderGuid;
         std::string         m_leaderName;
+        time_t              m_leaderLastOnline;
         uint64              m_mainTank;
         uint64              m_mainAssistant;
         GroupType           m_groupType;

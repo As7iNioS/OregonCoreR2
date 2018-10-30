@@ -449,6 +449,10 @@ void WorldSession::LogoutPlayer(bool Save)
         // If the player is in a group (or invited), remove him. If the group if then only 1 person, disband the group.
         _player->UninviteFromGroup();
 
+        ///- Send update to group
+        if (Group* group = _player->GetGroup())
+            group->UpdatePlayerOnlineStatus(_player, false);
+
         // Broadcast a logout message to the player's friends
         sSocialMgr.SendFriendStatus(_player, FRIEND_OFFLINE, _player->GetGUIDLow(), true);
         sSocialMgr.RemovePlayerSocial (_player->GetGUIDLow ());

@@ -1122,8 +1122,8 @@ void Player::Update(uint32 p_time)
         }
     }
 
-	if (HasUnitState(UNIT_STATE_MELEE_ATTACKING))
-		UpdateMeleeAttackingState();
+    if (HasUnitState(UNIT_STATE_MELEE_ATTACKING))
+        UpdateMeleeAttackingState();
 
     if (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING))
     {
@@ -13262,8 +13262,8 @@ void Player::AddQuest(Quest const* pQuest, Object* questGiver)
         GetMap()->ScriptsStart(sQuestStartScripts, pQuest->GetQuestStartScript(), questGiver, this);
 
     // Some spells applied at quest activation
-	uint32 zone = GetZoneId();
-	uint32 area = GetAreaId();
+    uint32 zone = GetZoneId();
+    uint32 area = GetAreaId();
 
     SpellAreaForAreaMapBounds saBounds = sSpellMgr.GetSpellAreaForAreaMapBounds(zone);
     for (SpellAreaForAreaMap::const_iterator itr = saBounds.first; itr != saBounds.second; ++itr)
@@ -13451,8 +13451,8 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
 
     // remove auras from spells with quest reward state limitations
     // Some spells applied at quest reward
-	uint32 zone = GetZoneId();
-	uint32 area = GetAreaId();
+    uint32 zone = GetZoneId();
+    uint32 area = GetAreaId();
 
     SpellAreaForAreaMapBounds saBounds = sSpellMgr.GetSpellAreaForAreaMapBounds(zone);
     for (SpellAreaForAreaMap::const_iterator itr = saBounds.first; itr != saBounds.second; ++itr)
@@ -16107,6 +16107,7 @@ void Player::_LoadGroup(QueryResult_AutoPtr result)
             }
         }
     }
+    UpdateGroupLeaderFlag();
 }
 
 void Player::_LoadBoundInstances(QueryResult_AutoPtr result)
@@ -20496,6 +20497,18 @@ PartyResult Player::CanUninviteFromGroup() const
         return PARTY_RESULT_INVITE_RESTRICTED;
 
     return PARTY_RESULT_OK;
+}
+
+void Player::UpdateGroupLeaderFlag(const bool remove /*= false*/)
+{
+    const Group* group = GetGroup();
+    if (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GROUP_LEADER))
+    {
+        if (remove || !group || group->GetLeaderGUID() != GetObjectGUID())
+            RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_GROUP_LEADER);
+    }
+    else if (!remove && group && group->GetLeaderGUID() == GetObjectGUID())
+        SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_GROUP_LEADER);
 }
 
 void Player::SetBattlegroundRaid(Group* group, int8 subgroup)

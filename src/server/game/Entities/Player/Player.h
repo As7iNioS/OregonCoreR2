@@ -1948,8 +1948,8 @@ class Player : public Unit, public GridObject<Player>
         void SendDelayResponse(const uint32);
         void SendLogXPGain(uint32 GivenXP, Unit* victim, uint32 RestXP, bool RafBonus = false);
 
-		uint8 LastSwingErrorMsg() const { return m_swingErrorMsg; }
-		void SwingErrorMsg(uint8 val) { m_swingErrorMsg = val; }
+        uint8 LastSwingErrorMsg() const { return m_swingErrorMsg; }
+        void SwingErrorMsg(uint8 val) { m_swingErrorMsg = val; }
 
         //notifiers
         void SendAttackSwingCantAttack();
@@ -2611,6 +2611,7 @@ class Player : public Unit, public GridObject<Player>
         }
         Player* GetNextRandomRaidMember(float radius);
         PartyResult CanUninviteFromGroup() const;
+        void UpdateGroupLeaderFlag(const bool remove = false);
 
         // Battleground Group System
         void SetBattlegroundRaid(Group* group, int8 subgroup = -1);
